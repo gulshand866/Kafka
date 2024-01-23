@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Order.API.Controllers;
 using Order.API.IRepo;
@@ -14,23 +15,28 @@ namespace Order.API.KafkaConsumer
 
         private readonly string _topic;
 
-        public KafkaConsumers(IConfiguration configuration, IServiceScopeFactory serviceScopeFactory)
+        private readonly KafkaSettings _kafkaSettings;
+
+
+        public KafkaConsumers(IOptions<KafkaSettings> kafkaSettings, IServiceScopeFactory serviceScopeFactory)
         {
+            _kafkaSettings = kafkaSettings.Value;
+
             var config = new ConsumerConfig
             {
-                BootstrapServers = configuration["Kafka:BootstrapServers"],
+                BootstrapServers = _kafkaSettings.BootstrapServers,
                 AutoOffsetReset = AutoOffsetReset.Earliest,
                 EnableAutoCommit = false,
                 SaslMechanism = SaslMechanism.Plain,
                 SecurityProtocol = SecurityProtocol.SaslSsl,
-                SaslUsername = configuration["Kafka:SaslUsername"],
-                SaslPassword = configuration["Kafka:SaslPassword"],
+                SaslUsername = _kafkaSettings.SaslUsername,
+                SaslPassword = _kafkaSettings.SaslPassword,
                 GroupId = $"consumer-group-1"
             };
 
             _consumer = new ConsumerBuilder<Ignore, string>(config).Build();
 
-            _topic = configuration["Kafka:Topic"] ?? throw new Exception("Kafka Topic is null. Check your configuration.");
+            _topic = _kafkaSettings.Topic ?? throw new Exception("Kafka Topic is null. Check your configuration.");
 
             _serviceScopeFactory = serviceScopeFactory;
 

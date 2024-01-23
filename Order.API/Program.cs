@@ -22,7 +22,10 @@ namespace Order.API
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IOrderRepo, OrderRepo>();
+
             builder.Services.AddSingleton<IKafkaConsumer, KafkaConsumers>();
+            builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
+
 
             // Database Connections
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("OrderDB")));

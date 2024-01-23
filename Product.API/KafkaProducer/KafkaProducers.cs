@@ -1,4 +1,5 @@
 ﻿using Confluent.Kafka;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Product.API.KafkaProducer
@@ -8,20 +9,24 @@ namespace Product.API.KafkaProducer
         private readonly IProducer<Null, string> _producer;
         private readonly string _topic;
 
-        public KafkaProducers(IConfiguration configuration)
+        private readonly KafkaSettings _kafkaSettings;
+
+        public KafkaProducers(IOptions<KafkaSettings> kafkaSettings)
         {
+            _kafkaSettings = kafkaSettings.Value;
+
             var config = new ProducerConfig
             {
-                BootstrapServers = configuration["Kafka:BootstrapServers"],
+                BootstrapServers = _kafkaSettings.BootstrapServers,
                 SaslMechanism = SaslMechanism.Plain,
                 SecurityProtocol = SecurityProtocol.SaslSsl,
-                SaslUsername = configuration["Kafka:SaslUsername"],
-                SaslPassword = configuration["Kafka:SaslPassword"]
+                SaslUsername = _kafkaSettings.SaslUsername,
+                SaslPassword = _kafkaSettings.SaslPassword
             };
 
             _producer = new ProducerBuilder<Null, string>(config).Build();
 
-            _topic = configuration["Kafka:Topic"] ?? throw new Exception("Kafka Topic is null. Check your configuration.");
+            _topic = _kafkaSettings.Topic ?? throw new Exception("Kafka Topic is null. Check your configuration.");
 
         }
 

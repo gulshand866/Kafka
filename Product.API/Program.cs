@@ -21,7 +21,9 @@ namespace Product.API
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IProductRepo, ProductRepo>();
+
             builder.Services.AddSingleton<IKafkaProducer, KafkaProducers>();
+            builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
 
             // Database Connections
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("ProductDB")));
